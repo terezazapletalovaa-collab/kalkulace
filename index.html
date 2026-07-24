@@ -490,6 +490,64 @@
       margin-top: 16px;
     }
 
+    .export-section {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 14px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 4px 18px rgba(23, 32, 51, 0.05);
+    }
+
+    .export-section p {
+      margin: 0 auto 0 0;
+      color: var(--muted);
+      font-size: .84rem;
+    }
+
+    .readonly-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 16px 0;
+      padding: 13px 16px;
+      border: 1px solid #a6d8bf;
+      border-radius: 12px;
+      color: var(--success);
+      background: var(--success-soft);
+      font-size: .9rem;
+    }
+
+    .readonly-banner[hidden] {
+      display: none;
+    }
+
+    .readonly-banner code {
+      color: #065f46;
+      font-weight: 800;
+      word-break: break-all;
+    }
+
+    .export-view input:disabled,
+    .export-view select:disabled,
+    .export-view textarea:disabled {
+      opacity: 1;
+      color: var(--text);
+      background: #f8fafc;
+      -webkit-text-fill-color: var(--text);
+    }
+
+    .export-view .parameter-strip button,
+    .export-view .parameter-actions,
+    .export-view .export-section,
+    .export-view #resetButton {
+      display: none !important;
+    }
+
     .note {
       margin: 14px 0 0;
       padding: 11px 12px;
@@ -564,6 +622,16 @@
       .parameter-strip .spacer {
         display: none;
       }
+
+      .export-section,
+      .readonly-banner {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .export-section .button {
+        width: 100%;
+      }
     }
 
     @media print {
@@ -589,7 +657,8 @@
 
       .hero-actions,
       .parameter-strip button,
-      .parameters,
+      .export-section,
+      .readonly-banner,
       .calculation-notes {
         display: none !important;
       }
@@ -618,10 +687,16 @@
       </div>
 
       <div class="hero-actions">
+        <button class="button button-ghost" type="button" id="copyExportLinkButton" hidden>Kopírovat odkaz</button>
         <button class="button button-ghost" type="button" id="printButton">Vytisknout</button>
         <button class="button button-light" type="button" id="resetButton">Nová kalkulace</button>
       </div>
     </header>
+
+    <div class="readonly-banner" id="readonlyBanner" hidden>
+      <span><strong>Exportovaná kalkulace – pouze pro čtení</strong><br>Všechna pole jsou uzamčená a odkaz lze uložit do databáze.</span>
+      <span>ID: <code id="exportUniqueId">–</code></span>
+    </div>
 
     <div class="parameter-strip" aria-live="polite">
       <strong>Aktivní parametry:</strong>
@@ -1145,6 +1220,13 @@
           </div>
         </details>
 
+        <div class="export-section" id="exportSection">
+          <p>Vytvoří statickou kopii kalkulace s unikátním odkazem a otevře ji v nové kartě.</p>
+          <button class="button button-primary" type="button" id="exportButton">
+            Exportovat kalkulaci
+          </button>
+        </div>
+
         <details class="calculation-notes">
           <summary>Jak jsou výpočty sestavené</summary>
           <ul>
@@ -1198,7 +1280,12 @@
       baseDiscount: "paramBaseDiscount"
     };
 
-    let parameters = loadParameters();
+    const exportPayload = readExportPayloadFromHash();
+    const isExportView = Boolean(exportPayload);
+
+    let parameters = exportPayload && exportPayload.parameters
+      ? { ...DEFAULT_PARAMETERS, ...exportPayload.parameters }
+      : loadParameters();
     let parametersLocked = true;
 
     const moneyFormatter = new Intl.NumberFormat("cs-CZ", {
@@ -1221,6 +1308,149 @@
 
     function element(id) {
       return document.getElementById(id);
+    }
+
+
+    function createUniqueId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+
+      return `calc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function encodeExportPayload(payload) {
+      const bytes = new TextEncoder().encode(JSON.stringify(payload));
+      let binary = "";
+      bytes.forEach(byte => {
+        binary += String.fromCharCode(byte);
+      });
+
+      return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+    }
+
+    function decodeExportPayload(encoded) {
+      const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+      const binary = atob(padded);
+      const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
+
+    function readExportPayloadFromHash() {
+      if (!window.location.hash.startsWith("#export=")) {
+        return null;
+      }
+
+      try {
+        return decodeExportPayload(window.location.hash.slice("#export=".length));
+      } catch (error) {
+        console.error("Exportovanou kalkulaci se nepodařilo načíst.", error);
+        return null;
+      }
+    }
+
+    function collectCalculationState() {
+      const fields = {};
+
+      document.querySelectorAll("input[id], select[id], textarea[id]").forEach(control => {
+        fields[control.id] = control.value;
+      });
+
+      return {
+        version: 1,
+        exportId: createUniqueId(),
+        createdAt: new Date().toISOString(),
+        parameters: { ...parameters },
+        fields,
+        panels: {
+          parametersOpen: element("parametersPanel").open,
+          notesOpen: Boolean(document.querySelector(".calculation-notes")?.open)
+        }
+      };
+    }
+
+    function restoreCalculationState(payload) {
+      if (!payload || !payload.fields) {
+        return;
+      }
+
+      Object.entries(payload.fields).forEach(([id, value]) => {
+        const control = element(id);
+        if (control) {
+          control.value = value;
+        }
+      });
+
+      if (payload.panels) {
+        element("parametersPanel").open = Boolean(payload.panels.parametersOpen);
+        const notesPanel = document.querySelector(".calculation-notes");
+        if (notesPanel) {
+          notesPanel.open = Boolean(payload.panels.notesOpen);
+        }
+      }
+    }
+
+    function buildExportUrl(payload) {
+      const url = new URL(window.location.href);
+      url.hash = `export=${encodeExportPayload(payload)}`;
+      return url.toString();
+    }
+
+    function exportCalculation() {
+      calculate();
+      const payload = collectCalculationState();
+      const exportUrl = buildExportUrl(payload);
+      window.open(exportUrl, "_blank", "noopener");
+    }
+
+    async function copyCurrentExportLink() {
+      const link = window.location.href;
+
+      try {
+        await navigator.clipboard.writeText(link);
+        element("copyExportLinkButton").textContent = "Odkaz zkopírován";
+      } catch (error) {
+        const temporary = document.createElement("textarea");
+        temporary.value = link;
+        temporary.setAttribute("readonly", "");
+        temporary.style.position = "fixed";
+        temporary.style.opacity = "0";
+        document.body.appendChild(temporary);
+        temporary.select();
+        document.execCommand("copy");
+        temporary.remove();
+        element("copyExportLinkButton").textContent = "Odkaz zkopírován";
+      }
+
+      window.setTimeout(() => {
+        element("copyExportLinkButton").textContent = "Kopírovat odkaz";
+      }, 1800);
+    }
+
+    function activateExportView(payload) {
+      document.body.classList.add("export-view");
+      element("readonlyBanner").hidden = false;
+      element("copyExportLinkButton").hidden = false;
+      element("exportUniqueId").textContent = payload.exportId || "bez ID";
+
+      document.querySelectorAll("input, select, textarea").forEach(control => {
+        control.disabled = true;
+      });
+
+      document.querySelectorAll("button").forEach(button => {
+        if (!["copyExportLinkButton", "printButton"].includes(button.id)) {
+          button.disabled = true;
+        }
+      });
+
+      const tourName = element("tourName").value.trim();
+      document.title = tourName
+        ? `${tourName} – exportovaná kalkulace`
+        : "Exportovaná kalkulace poznávacího zájezdu";
     }
 
     function getNumber(id) {
@@ -1609,14 +1839,26 @@
       }
     });
 
+    element("exportButton").addEventListener("click", exportCalculation);
+    element("copyExportLinkButton").addEventListener("click", copyCurrentExportLink);
     element("printButton").addEventListener("click", () => window.print());
 
     populateParameterInputs();
-    element("effectiveOccupancy").value = parameters.defaultOccupancy;
+
+    if (exportPayload) {
+      restoreCalculationState(exportPayload);
+    } else {
+      element("effectiveOccupancy").value = parameters.defaultOccupancy;
+    }
+
     setParametersLocked(true);
     updateCurrencyLabels();
     refreshParameterStrip();
     calculate();
+
+    if (exportPayload) {
+      activateExportView(exportPayload);
+    }
   </script>
 </body>
 </html>
