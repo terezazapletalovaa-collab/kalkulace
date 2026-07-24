@@ -304,6 +304,56 @@
       cursor: not-allowed;
     }
 
+    .night-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 126px;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .night-controls select {
+      min-width: 0;
+      padding-left: 9px;
+      padding-right: 9px;
+    }
+
+    .group-tours {
+      margin-top: 0;
+    }
+
+    .group-tours > .card-body {
+      display: grid;
+      gap: 18px;
+    }
+
+    .group-section {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-soft);
+    }
+
+    .group-section h3 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+    }
+
+    .group-section > .hint:first-of-type {
+      margin: 0 0 14px;
+    }
+
+    .group-section-insurance {
+      border-top: 4px solid var(--insurance);
+    }
+
+    .group-section-entries {
+      border-top: 4px solid var(--entries);
+    }
+
+    .group-section-unpaid {
+      border-top: 4px solid var(--warning);
+    }
+
     .input-with-unit {
       position: relative;
     }
@@ -619,6 +669,10 @@
         grid-template-columns: 1fr;
       }
 
+      .night-controls {
+        grid-template-columns: minmax(0, 1fr) 104px;
+      }
+
       .parameter-strip .spacer {
         display: none;
       }
@@ -740,9 +794,7 @@
               <div class="field">
                 <label for="kmRate">Sazba autobusu</label>
                 <select id="kmRate" class="calculation-input">
-                  <option value="38">38 Kč/km</option>
-                  <option value="39">39 Kč/km</option>
-                  <option value="40">40 Kč/km</option>
+                  <option value="40" selected>40 Kč/km</option>
                   <option value="41">41 Kč/km</option>
                   <option value="42">42 Kč/km</option>
                   <option value="43">43 Kč/km</option>
@@ -847,54 +899,80 @@
             <h2>Ubytování</h2>
           </div>
           <div class="card-body">
-            <div class="grid grid-2" style="margin-bottom: 14px;">
-              <div class="field">
-                <label for="accommodationCurrency">Měna ubytování</label>
-                <select id="accommodationCurrency" class="calculation-input currency-select">
-                  <option value="CZK">CZK – česká koruna</option>
-                  <option value="EUR" selected>EUR – euro</option>
-                  <option value="GBP">GBP – britská libra</option>
-                  <option value="NOK">NOK – norská koruna</option>
-                  <option value="SEK">SEK – švédská koruna</option>
-                  <option value="PLN">PLN – polský zlotý</option>
-                </select>
-              </div>
-            </div>
-
             <p class="hint" style="margin: 0 0 14px;">
-              U každé noci zadejte cenu ubytování za jednu osobu ve zvolené měně.
+              U každé noci zadejte cenu ubytování za jednu osobu a samostatně vyberte měnu.
             </p>
 
-            <div class="grid grid-4">
+            <div class="grid grid-2">
               <div class="field">
                 <label for="night1">1. noc</label>
-                <div class="input-with-unit">
-                  <input id="night1" class="calculation-input" type="number" min="0" step="0.01" value="0">
-                  <span class="unit accommodation-currency-unit">EUR</span>
+                <div class="night-controls">
+                  <div class="input-with-unit">
+                    <input id="night1" class="calculation-input" type="number" min="0" step="0.01" value="0">
+                    <span class="unit" id="night1CurrencyUnit">EUR</span>
+                  </div>
+                  <select id="night1Currency" class="calculation-input currency-select" aria-label="Měna 1. noci">
+                    <option value="CZK">CZK</option>
+                    <option value="EUR" selected>EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="NOK">NOK</option>
+                    <option value="SEK">SEK</option>
+                    <option value="PLN">PLN</option>
+                  </select>
                 </div>
               </div>
 
               <div class="field">
                 <label for="night2">2. noc</label>
-                <div class="input-with-unit">
-                  <input id="night2" class="calculation-input" type="number" min="0" step="0.01" value="0">
-                  <span class="unit accommodation-currency-unit">EUR</span>
+                <div class="night-controls">
+                  <div class="input-with-unit">
+                    <input id="night2" class="calculation-input" type="number" min="0" step="0.01" value="0">
+                    <span class="unit" id="night2CurrencyUnit">EUR</span>
+                  </div>
+                  <select id="night2Currency" class="calculation-input currency-select" aria-label="Měna 2. noci">
+                    <option value="CZK">CZK</option>
+                    <option value="EUR" selected>EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="NOK">NOK</option>
+                    <option value="SEK">SEK</option>
+                    <option value="PLN">PLN</option>
+                  </select>
                 </div>
               </div>
 
               <div class="field">
                 <label for="night3">3. noc</label>
-                <div class="input-with-unit">
-                  <input id="night3" class="calculation-input" type="number" min="0" step="0.01" value="0">
-                  <span class="unit accommodation-currency-unit">EUR</span>
+                <div class="night-controls">
+                  <div class="input-with-unit">
+                    <input id="night3" class="calculation-input" type="number" min="0" step="0.01" value="0">
+                    <span class="unit" id="night3CurrencyUnit">EUR</span>
+                  </div>
+                  <select id="night3Currency" class="calculation-input currency-select" aria-label="Měna 3. noci">
+                    <option value="CZK">CZK</option>
+                    <option value="EUR" selected>EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="NOK">NOK</option>
+                    <option value="SEK">SEK</option>
+                    <option value="PLN">PLN</option>
+                  </select>
                 </div>
               </div>
 
               <div class="field">
                 <label for="night4">4. noc</label>
-                <div class="input-with-unit">
-                  <input id="night4" class="calculation-input" type="number" min="0" step="0.01" value="0">
-                  <span class="unit accommodation-currency-unit">EUR</span>
+                <div class="night-controls">
+                  <div class="input-with-unit">
+                    <input id="night4" class="calculation-input" type="number" min="0" step="0.01" value="0">
+                    <span class="unit" id="night4CurrencyUnit">EUR</span>
+                  </div>
+                  <select id="night4Currency" class="calculation-input currency-select" aria-label="Měna 4. noci">
+                    <option value="CZK">CZK</option>
+                    <option value="EUR" selected>EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="NOK">NOK</option>
+                    <option value="SEK">SEK</option>
+                    <option value="PLN">PLN</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -905,7 +983,7 @@
                 <strong id="accommodationTotal">0 Kč</strong>
               </div>
               <div class="mini-result">
-                <span>Náklad / osoba</span>
+                <span>Náklad / platící osoba</span>
                 <strong id="accommodationCostPerPerson">0 Kč</strong>
               </div>
               <div class="mini-result">
@@ -916,117 +994,177 @@
           </div>
         </article>
 
-        <article class="card accent-insurance">
-          <div class="card-header">
-            <h2>Pojištění</h2>
-          </div>
+        <details class="card parameters group-tours" id="groupToursPanel">
+          <summary class="card-header">
+            <h2>Skupinové zájezdy</h2>
+            <span class="details-chevron" aria-hidden="true">⌄</span>
+          </summary>
+
           <div class="card-body">
-            <div class="grid grid-2">
-              <div class="field">
-                <label for="tourDays">Počet dní zájezdu</label>
-                <div class="input-with-unit">
-                  <input id="tourDays" class="calculation-input" type="number" min="0" step="1" value="0">
-                  <span class="unit">dní</span>
+            <section class="group-section group-section-insurance">
+              <h3>Pojištění</h3>
+              <p class="hint">Pojištění platících i neplatících osob se počítá bez marže a bez jiné přirážky.</p>
+
+              <div class="grid grid-2">
+                <div class="field">
+                  <label for="tourDays">Počet dní zájezdu</label>
+                  <div class="input-with-unit">
+                    <input id="tourDays" class="calculation-input" type="number" min="0" step="1" value="0">
+                    <span class="unit">dní</span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="insuranceDailyRateDisplay">Sazba pojištění</label>
+                  <div class="input-with-unit">
+                    <input id="insuranceDailyRateDisplay" type="text" readonly>
+                    <span class="unit">Kč/os./den</span>
+                  </div>
                 </div>
               </div>
 
-              <div class="field">
-                <label for="insuranceDailyRateDisplay">Sazba pojištění</label>
-                <div class="input-with-unit">
-                  <input id="insuranceDailyRateDisplay" type="text" readonly>
-                  <span class="unit">Kč/os./den</span>
+              <div class="formula-box">
+                <div class="mini-result">
+                  <span>Pojištění / platící osoba</span>
+                  <strong id="insuranceCostPerPerson">0 Kč</strong>
+                </div>
+                <div class="mini-result">
+                  <span>Pojištění celkem</span>
+                  <strong id="insuranceTotal">0 Kč</strong>
+                </div>
+                <div class="mini-result">
+                  <span>Prodejní složka / osoba</span>
+                  <strong id="insuranceSalePerPerson">0 Kč</strong>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div class="formula-box">
-              <div class="mini-result">
-                <span>Pojištění / osoba</span>
-                <strong id="insuranceCostPerPerson">0 Kč</strong>
-              </div>
-              <div class="mini-result">
-                <span>Pojištění celkem</span>
-                <strong id="insuranceTotal">0 Kč</strong>
-              </div>
-              <div class="mini-result">
-                <span>Prodejní složka / osoba</span>
-                <strong id="insuranceSalePerPerson">0 Kč</strong>
-              </div>
-            </div>
+            <section class="group-section group-section-entries">
+              <h3>Vstupy</h3>
+              <p class="hint">Zadejte cenu jednotlivého vstupu za jednu osobu a vyberte jeho měnu.</p>
 
-            <p class="note">Pojištění se do prodejní ceny přičítá bez marže a bez jiné přirážky.</p>
+              <div class="grid grid-2">
+                <div class="field">
+                  <label for="entry1Price">Cena 1. vstupu / osoba</label>
+                  <div class="input-with-unit">
+                    <input id="entry1Price" class="calculation-input" type="number" min="0" step="0.01" value="0">
+                    <span class="unit" id="entry1CurrencyUnit">EUR</span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="entry1Currency">Měna 1. vstupu</label>
+                  <select id="entry1Currency" class="calculation-input currency-select">
+                    <option value="CZK">CZK – česká koruna</option>
+                    <option value="EUR" selected>EUR – euro</option>
+                    <option value="GBP">GBP – britská libra</option>
+                    <option value="NOK">NOK – norská koruna</option>
+                    <option value="SEK">SEK – švédská koruna</option>
+                    <option value="PLN">PLN – polský zlotý</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="entry2Price">Cena 2. vstupu / osoba</label>
+                  <div class="input-with-unit">
+                    <input id="entry2Price" class="calculation-input" type="number" min="0" step="0.01" value="0">
+                    <span class="unit" id="entry2CurrencyUnit">EUR</span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="entry2Currency">Měna 2. vstupu</label>
+                  <select id="entry2Currency" class="calculation-input currency-select">
+                    <option value="CZK">CZK – česká koruna</option>
+                    <option value="EUR" selected>EUR – euro</option>
+                    <option value="GBP">GBP – britská libra</option>
+                    <option value="NOK">NOK – norská koruna</option>
+                    <option value="SEK">SEK – švédská koruna</option>
+                    <option value="PLN">PLN – polský zlotý</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="formula-box">
+                <div class="mini-result">
+                  <span>Náklad vstupů / osoba</span>
+                  <strong id="entriesCostPerPerson">0 Kč</strong>
+                </div>
+                <div class="mini-result">
+                  <span>Náklad vstupů celkem</span>
+                  <strong id="entriesTotal">0 Kč</strong>
+                </div>
+                <div class="mini-result">
+                  <span>Prodejní složka / osoba</span>
+                  <strong id="entriesSalePerPerson">0 Kč</strong>
+                </div>
+              </div>
+
+              <p class="note">Vstupy se do prodejní ceny přičítají bez marže a bez jiné přirážky.</p>
+            </section>
+
+            <section class="group-section group-section-unpaid">
+              <h3>Náklady za neplatící osoby</h3>
+              <p class="hint">Pojištění a ubytování neplatících osob se rozpočítají mezi ručně zadanou obsazenost autobusu.</p>
+
+              <div class="grid grid-2">
+                <div class="field">
+                  <label for="unpaidPersons">Počet neplatících osob</label>
+                  <div class="input-with-unit">
+                    <input id="unpaidPersons" class="calculation-input" type="number" min="0" step="1" value="0">
+                    <span class="unit">os.</span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="groupInsuranceTotalDisplay">Pojištění</label>
+                  <div class="input-with-unit">
+                    <input id="groupInsuranceTotalDisplay" type="text" readonly>
+                    <span class="unit">Kč</span>
+                  </div>
+                  <span class="hint">Počet dní × 62 Kč × počet neplatících osob.</span>
+                </div>
+
+                <div class="field">
+                  <label for="groupAccommodationPerPersonDisplay">Ubytování / neplatící osoba</label>
+                  <div class="input-with-unit">
+                    <input id="groupAccommodationPerPersonDisplay" type="text" readonly>
+                    <span class="unit">Kč</span>
+                  </div>
+                  <span class="hint">Automaticky převzato z bloku Ubytování.</span>
+                </div>
+
+                <div class="field">
+                  <label for="groupAccommodationTotalDisplay">Ubytování</label>
+                  <div class="input-with-unit">
+                    <input id="groupAccommodationTotalDisplay" type="text" readonly>
+                    <span class="unit">Kč</span>
+                  </div>
+                  <span class="hint">Ubytování za osobu × počet neplatících osob.</span>
+                </div>
+              </div>
+
+              <div class="formula-box">
+                <div class="mini-result">
+                  <span>Pojištění neplatících osob</span>
+                  <strong id="groupInsuranceTotal">0 Kč</strong>
+                </div>
+                <div class="mini-result">
+                  <span>Ubytování neplatících osob</span>
+                  <strong id="groupAccommodationTotal">0 Kč</strong>
+                </div>
+                <div class="mini-result">
+                  <span>Navýšení nákladu / platící osoba</span>
+                  <strong id="groupSharePerPayingPerson">0 Kč</strong>
+                </div>
+              </div>
+
+              <p class="note">
+                Ubytování neplatících osob je zahrnuto do ubytovací složky kalkulace. Pojištění se rozpočítává bez marže.
+              </p>
+            </section>
           </div>
-        </article>
-
-        <article class="card accent-entries">
-          <div class="card-header">
-            <h2>Vstupy</h2>
-          </div>
-          <div class="card-body">
-            <p class="hint" style="margin: 0 0 14px;">
-              Zadejte cenu jednotlivého vstupu za jednu osobu a vyberte jeho měnu.
-            </p>
-
-            <div class="grid grid-2">
-              <div class="field">
-                <label for="entry1Price">Cena 1. vstupu / osoba</label>
-                <div class="input-with-unit">
-                  <input id="entry1Price" class="calculation-input" type="number" min="0" step="0.01" value="0">
-                  <span class="unit" id="entry1CurrencyUnit">EUR</span>
-                </div>
-              </div>
-
-              <div class="field">
-                <label for="entry1Currency">Měna 1. vstupu</label>
-                <select id="entry1Currency" class="calculation-input currency-select">
-                  <option value="CZK">CZK – česká koruna</option>
-                  <option value="EUR" selected>EUR – euro</option>
-                  <option value="GBP">GBP – britská libra</option>
-                  <option value="NOK">NOK – norská koruna</option>
-                  <option value="SEK">SEK – švédská koruna</option>
-                  <option value="PLN">PLN – polský zlotý</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label for="entry2Price">Cena 2. vstupu / osoba</label>
-                <div class="input-with-unit">
-                  <input id="entry2Price" class="calculation-input" type="number" min="0" step="0.01" value="0">
-                  <span class="unit" id="entry2CurrencyUnit">EUR</span>
-                </div>
-              </div>
-
-              <div class="field">
-                <label for="entry2Currency">Měna 2. vstupu</label>
-                <select id="entry2Currency" class="calculation-input currency-select">
-                  <option value="CZK">CZK – česká koruna</option>
-                  <option value="EUR" selected>EUR – euro</option>
-                  <option value="GBP">GBP – britská libra</option>
-                  <option value="NOK">NOK – norská koruna</option>
-                  <option value="SEK">SEK – švédská koruna</option>
-                  <option value="PLN">PLN – polský zlotý</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="formula-box">
-              <div class="mini-result">
-                <span>Náklad vstupů / osoba</span>
-                <strong id="entriesCostPerPerson">0 Kč</strong>
-              </div>
-              <div class="mini-result">
-                <span>Náklad vstupů celkem</span>
-                <strong id="entriesTotal">0 Kč</strong>
-              </div>
-              <div class="mini-result">
-                <span>Prodejní složka / osoba</span>
-                <strong id="entriesSalePerPerson">0 Kč</strong>
-              </div>
-            </div>
-
-            <p class="note">Vstupy se do prodejní ceny přičítají bez marže a bez jiné přirážky.</p>
-          </div>
-        </article>
+        </details>
       </section>
 
       <aside class="stack results-column">
@@ -1233,9 +1371,10 @@
             <li>Odhad kilometrů = trasa × (1 + rezerva kilometrů)</li>
             <li>Doprava = odhad km × sazba Kč/km + daň, parkovné a trajekt</li>
             <li>Náklad na osobu = celkový náklad ÷ ručně zadaná obsazenost autobusu</li>
-            <li>Ubytování = součet cen nocí × kurz zvolené měny</li>
+            <li>Ubytování = součet jednotlivých nocí převedených jejich vlastními měnovými kurzy</li>
             <li>Pojištění = počet dní × 62 Kč za osobu a den; bez marže</li>
             <li>Vstupy = ceny vstupů × kurzy zvolených měn; bez marže</li>
+            <li>Ubytování a pojištění neplatících osob se rozdělí mezi zadanou obsazenost autobusu</li>
             <li>Optimální cena = prodejní složky dopravy, průvodce a ubytování + pojištění a vstupy bez přirážky</li>
             <li>Katalogová cena = skutečná prodejní cena ÷ (1 − základní sleva)</li>
             <li>Návrh katalogové ceny je zaokrouhlen na cenu končící číslicí 9</li>
@@ -1361,13 +1500,14 @@
       });
 
       return {
-        version: 1,
+        version: 2,
         exportId: createUniqueId(),
         createdAt: new Date().toISOString(),
         parameters: { ...parameters },
         fields,
         panels: {
           parametersOpen: element("parametersPanel").open,
+          groupToursOpen: element("groupToursPanel").open,
           notesOpen: Boolean(document.querySelector(".calculation-notes")?.open)
         }
       };
@@ -1387,6 +1527,7 @@
 
       if (payload.panels) {
         element("parametersPanel").open = Boolean(payload.panels.parametersOpen);
+        element("groupToursPanel").open = Boolean(payload.panels.groupToursOpen);
         const notesPanel = document.querySelector(".calculation-notes");
         if (notesPanel) {
           notesPanel.open = Boolean(payload.panels.notesOpen);
@@ -1557,9 +1698,11 @@
     }
 
     function updateCurrencyLabels() {
-      const accommodationCurrency = element("accommodationCurrency").value;
-      document.querySelectorAll(".accommodation-currency-unit").forEach(unit => {
-        unit.textContent = accommodationCurrency;
+      [1, 2, 3, 4].forEach(nightNumber => {
+        setText(
+          `night${nightNumber}CurrencyUnit`,
+          element(`night${nightNumber}Currency`).value
+        );
       });
 
       setText("entry1CurrencyUnit", element("entry1Currency").value);
@@ -1613,23 +1756,37 @@
       const guideSalePerPerson =
         guideCostPerPerson * (1 + parameters.guideMarkup / 100);
 
-      const accommodationCurrency = element("accommodationCurrency").value;
-      const accommodationRate = getCurrencyRate(accommodationCurrency);
-      const accommodationAmount =
-        getNumber("night1") +
-        getNumber("night2") +
-        getNumber("night3") +
-        getNumber("night4");
+      const baseAccommodationCostPerPerson = [1, 2, 3, 4].reduce(
+        (sum, nightNumber) =>
+          sum +
+          getNumber(`night${nightNumber}`) *
+            getCurrencyRate(element(`night${nightNumber}Currency`).value),
+        0
+      );
 
-      const accommodationCostPerPerson = accommodationAmount * accommodationRate;
+      const unpaidPersons = getNumber("unpaidPersons");
+      const unpaidAccommodationTotal =
+        baseAccommodationCostPerPerson * unpaidPersons;
+      const payingAccommodationTotal =
+        baseAccommodationCostPerPerson * occupancy;
+      const accommodationTotal =
+        payingAccommodationTotal + unpaidAccommodationTotal;
+      const accommodationCostPerPerson = safeDivide(accommodationTotal, occupancy);
       const accommodationSalePerPerson =
         accommodationCostPerPerson * (1 + parameters.accommodationMarkup / 100);
-      const accommodationTotal = accommodationCostPerPerson * occupancy;
 
       const tourDays = getNumber("tourDays");
-      const insuranceCostPerPerson = tourDays * parameters.insuranceDailyRate;
-      const insuranceTotal = insuranceCostPerPerson * occupancy;
+      const baseInsuranceCostPerPerson =
+        tourDays * parameters.insuranceDailyRate;
+      const unpaidInsuranceTotal =
+        baseInsuranceCostPerPerson * unpaidPersons;
+      const payingInsuranceTotal = baseInsuranceCostPerPerson * occupancy;
+      const insuranceTotal = payingInsuranceTotal + unpaidInsuranceTotal;
+      const insuranceCostPerPerson = safeDivide(insuranceTotal, occupancy);
       const insuranceSalePerPerson = insuranceCostPerPerson;
+
+      const unpaidGroupTotal = unpaidAccommodationTotal + unpaidInsuranceTotal;
+      const unpaidGroupSharePerPayingPerson = safeDivide(unpaidGroupTotal, occupancy);
 
       const entry1CostPerPerson =
         getNumber("entry1Price") * getCurrencyRate(element("entry1Currency").value);
@@ -1693,6 +1850,22 @@
       setText("insuranceCostPerPerson", formatMoney(insuranceCostPerPerson));
       setText("insuranceTotal", formatMoney(insuranceTotal));
       setText("insuranceSalePerPerson", formatMoney(insuranceSalePerPerson));
+
+      setValue("groupInsuranceTotalDisplay", formatNumber(unpaidInsuranceTotal));
+      setValue(
+        "groupAccommodationPerPersonDisplay",
+        formatNumber(baseAccommodationCostPerPerson)
+      );
+      setValue(
+        "groupAccommodationTotalDisplay",
+        formatNumber(unpaidAccommodationTotal)
+      );
+      setText("groupInsuranceTotal", formatMoney(unpaidInsuranceTotal));
+      setText("groupAccommodationTotal", formatMoney(unpaidAccommodationTotal));
+      setText(
+        "groupSharePerPayingPerson",
+        formatMoney(unpaidGroupSharePerPayingPerson)
+      );
 
       setText("entriesCostPerPerson", formatMoney(entriesCostPerPerson));
       setText("entriesTotal", formatMoney(entriesTotal));
@@ -1764,6 +1937,7 @@
         "night3",
         "night4",
         "tourDays",
+        "unpaidPersons",
         "entry1Price",
         "entry2Price",
         "finalSalePrice",
@@ -1776,8 +1950,10 @@
       });
 
       element("effectiveOccupancy").value = parameters.defaultOccupancy;
-      element("kmRate").value = "38";
-      element("accommodationCurrency").value = "EUR";
+      element("kmRate").value = "40";
+      [1, 2, 3, 4].forEach(nightNumber => {
+        element(`night${nightNumber}Currency`).value = "EUR";
+      });
       element("entry1Currency").value = "EUR";
       element("entry2Currency").value = "EUR";
       calculate();
@@ -1829,6 +2005,7 @@
         "night3",
         "night4",
         "tourDays",
+        "unpaidPersons",
         "entry1Price",
         "entry2Price",
         "finalSalePrice"
