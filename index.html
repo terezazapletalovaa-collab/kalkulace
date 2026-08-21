@@ -1037,10 +1037,6 @@
                 <span class="hint">Pole lze pro každou kalkulaci ručně změnit.</span>
               </div>
 
-              <div class="field field-wide">
-                <label for="notes">Poznámka</label>
-                <textarea id="notes" placeholder="Např. sledovat nástupní místa"></textarea>
-              </div>
             </div>
           </div>
         </article>
@@ -1098,6 +1094,15 @@
                   <input id="guideTotal" class="calculation-input" type="number" min="0" step="1" value="0">
                   <span class="unit">Kč</span>
                 </div>
+              </div>
+
+              <div class="field">
+                <label for="guideSurcharge">Přirážka</label>
+                <div class="input-with-unit">
+                  <input id="guideSurcharge" class="calculation-input" type="number" min="0" step="1" value="0">
+                  <span class="unit">Kč</span>
+                </div>
+                <span class="hint">Další náklad za celý zájezd. Rozpočítá se mezi platící osoby a vstupuje do marže průvodce.</span>
               </div>
             </div>
 
@@ -1791,7 +1796,7 @@
       });
 
       return {
-        version: 5,
+        version: 6,
         exportId: createUniqueId(),
         createdAt: new Date().toISOString(),
         parameters: { ...parameters },
@@ -2107,7 +2112,9 @@
       const transportSalePerPerson =
         transportCostPerPerson * (1 + parameters.busMarkup / 100);
 
-      const guideTotal = getNumber("guideTotal");
+      const guideBaseTotal = getNumber("guideTotal");
+      const guideSurcharge = getNumber("guideSurcharge");
+      const guideTotal = guideBaseTotal + guideSurcharge;
       const guideCostPerPerson = safeDivide(guideTotal, occupancy);
       const guideSalePerPerson =
         guideCostPerPerson * (1 + parameters.guideMarkup / 100);
@@ -2293,6 +2300,7 @@
         "taxParking",
         "ferry",
         "guideTotal",
+        "guideSurcharge",
         "night1",
         "night2",
         "night3",
@@ -2302,8 +2310,7 @@
         "unpaidPersons",
         "entry1Price",
         "entry2Price",
-        "finalSalePrice",
-        "notes"
+        "finalSalePrice"
       ];
 
       fieldsToReset.forEach(id => {
@@ -2363,6 +2370,7 @@
         "taxParking",
         "ferry",
         "guideTotal",
+        "guideSurcharge",
         "night1",
         "night2",
         "night3",
@@ -2405,4 +2413,4 @@
     }
   </script>
 </body>
-</html>
+</html>v
