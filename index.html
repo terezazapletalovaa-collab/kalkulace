@@ -99,8 +99,12 @@
     }
 
     .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       min-height: 42px;
       padding: 9px 15px;
+      text-decoration: none;
       border: 1px solid transparent;
       border-radius: 10px;
       font-weight: 700;
@@ -244,6 +248,10 @@
 
     .grid-4 {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .grid-5 {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 
     .field {
@@ -594,7 +602,8 @@
     .export-view .parameter-strip button,
     .export-view .parameter-actions,
     .export-view .export-section,
-    .export-view #resetButton {
+    .export-view #resetButton,
+    .export-view #transportListLink {
       display: none !important;
     }
 
@@ -664,6 +673,7 @@
       .grid-2,
       .grid-3,
       .grid-4,
+      .grid-5,
       .formula-box,
       .result-grid {
         grid-template-columns: 1fr;
@@ -741,6 +751,7 @@
       </div>
 
       <div class="hero-actions">
+        <a class="button button-ghost" id="transportListLink" href="doprava.html">Seznam dopravy</a>
         <button class="button button-ghost" type="button" id="copyExportLinkButton" hidden>Kopírovat odkaz</button>
         <button class="button button-ghost" type="button" id="printButton">Vytisknout</button>
         <button class="button button-light" type="button" id="resetButton">Nová kalkulace</button>
@@ -975,9 +986,37 @@
                   </select>
                 </div>
               </div>
+
+
+              <div class="field field-wide">
+                <label for="accommodationBuffer">Přirážka</label>
+                <div class="night-controls">
+                  <div class="input-with-unit">
+                    <input id="accommodationBuffer" class="calculation-input" type="number" min="0" step="0.01" value="0">
+                    <span class="unit" id="accommodationBufferCurrencyUnit">CZK</span>
+                  </div>
+                  <select id="accommodationBufferCurrency" class="calculation-input currency-select" aria-label="Měna přirážky">
+                    <option value="CZK" selected>CZK</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="NOK">NOK</option>
+                    <option value="SEK">SEK</option>
+                    <option value="PLN">PLN</option>
+                  </select>
+                </div>
+                <span class="hint">Celková přirážka za celý zájezd. Nejprve se přepočítá do Kč podle zvolené měny, poté se rozpočítá mezi platící osoby a započítá do marže jako běžný náklad.</span>
+              </div>
             </div>
 
             <div class="formula-box">
+              <div class="mini-result">
+                <span>Reálný náklad nocí / osoba</span>
+                <strong id="accommodationRealPerPerson">0 Kč</strong>
+              </div>
+              <div class="mini-result">
+                <span>Přirážka celkem</span>
+                <strong id="accommodationBufferOutput">0 Kč</strong>
+              </div>
               <div class="mini-result">
                 <span>Náklad ubytování celkem</span>
                 <strong id="accommodationTotal">0 Kč</strong>
@@ -1131,7 +1170,7 @@
                     <input id="groupAccommodationPerPersonDisplay" type="text" readonly>
                     <span class="unit">Kč</span>
                   </div>
-                  <span class="hint">Automaticky převzato z bloku Ubytování.</span>
+                  <span class="hint">Automaticky převzato z reálných nákladů nocí; přirážka se sem nezapočítává.</span>
                 </div>
 
                 <div class="field">
@@ -1371,7 +1410,7 @@
             <li>Odhad kilometrů = trasa × (1 + rezerva kilometrů)</li>
             <li>Doprava = odhad km × sazba Kč/km + daň, parkovné a trajekt</li>
             <li>Náklad na osobu = celkový náklad ÷ ručně zadaná obsazenost autobusu</li>
-            <li>Ubytování = součet jednotlivých nocí převedených jejich vlastními měnovými kurzy</li>
+            <li>Ubytování = součet jednotlivých nocí převedených jejich vlastními měnovými kurzy + celková přirážka převedená podle zvolené měny.</li>
             <li>Pojištění = počet dní × 62 Kč za osobu a den; bez marže</li>
             <li>Vstupy = ceny vstupů × kurzy zvolených měn; bez marže</li>
             <li>Ubytování a pojištění neplatících osob se rozdělí mezi zadanou obsazenost autobusu</li>
@@ -1421,6 +1460,7 @@
 
     const exportPayload = readExportPayloadFromHash();
     const isExportView = Boolean(exportPayload);
+    const transportPrefill = isExportView ? null : readTransportPrefillFromQuery();
 
     let parameters = exportPayload && exportPayload.parameters
       ? { ...DEFAULT_PARAMETERS, ...exportPayload.parameters }
@@ -1492,6 +1532,39 @@
       }
     }
 
+    function readTransportPrefillFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("source") !== "transport-list") {
+        return null;
+      }
+
+      return {
+        tourName: params.get("tourName") || "",
+        routeKm: params.get("routeKm") || "0",
+        kmRate: params.get("kmRate") || "40",
+        taxParking: params.get("taxParking") || "0"
+      };
+    }
+
+    function applyTransportPrefill(prefill) {
+      if (!prefill) {
+        return;
+      }
+
+      element("tourName").value = prefill.tourName;
+      element("routeKm").value = prefill.routeKm;
+      element("taxParking").value = prefill.taxParking;
+
+      const rateOption = Array.from(element("kmRate").options).some(
+        option => option.value === String(prefill.kmRate)
+      );
+      element("kmRate").value = rateOption ? String(prefill.kmRate) : "40";
+
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.search = "";
+      window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.hash);
+    }
+
     function collectCalculationState() {
       const fields = {};
 
@@ -1500,7 +1573,7 @@
       });
 
       return {
-        version: 2,
+        version: 5,
         exportId: createUniqueId(),
         createdAt: new Date().toISOString(),
         parameters: { ...parameters },
@@ -1705,6 +1778,7 @@
         );
       });
 
+      setText("accommodationBufferCurrencyUnit", element("accommodationBufferCurrency").value);
       setText("entry1CurrencyUnit", element("entry1Currency").value);
       setText("entry2CurrencyUnit", element("entry2Currency").value);
     }
@@ -1756,21 +1830,24 @@
       const guideSalePerPerson =
         guideCostPerPerson * (1 + parameters.guideMarkup / 100);
 
-      const baseAccommodationCostPerPerson = [1, 2, 3, 4].reduce(
+      const realAccommodationCostPerPerson = [1, 2, 3, 4].reduce(
         (sum, nightNumber) =>
           sum +
           getNumber(`night${nightNumber}`) *
             getCurrencyRate(element(`night${nightNumber}Currency`).value),
         0
       );
+      const accommodationBufferTotal =
+        getNumber("accommodationBuffer") *
+        getCurrencyRate(element("accommodationBufferCurrency").value);
 
       const unpaidPersons = getNumber("unpaidPersons");
       const unpaidAccommodationTotal =
-        baseAccommodationCostPerPerson * unpaidPersons;
+        realAccommodationCostPerPerson * unpaidPersons;
       const payingAccommodationTotal =
-        baseAccommodationCostPerPerson * occupancy;
+        realAccommodationCostPerPerson * occupancy;
       const accommodationTotal =
-        payingAccommodationTotal + unpaidAccommodationTotal;
+        payingAccommodationTotal + unpaidAccommodationTotal + accommodationBufferTotal;
       const accommodationCostPerPerson = safeDivide(accommodationTotal, occupancy);
       const accommodationSalePerPerson =
         accommodationCostPerPerson * (1 + parameters.accommodationMarkup / 100);
@@ -1843,6 +1920,8 @@
       setText("guideCostPerPerson", formatMoney(guideCostPerPerson));
       setText("guideSalePerPerson", formatMoney(guideSalePerPerson));
 
+      setText("accommodationRealPerPerson", formatMoney(realAccommodationCostPerPerson));
+      setText("accommodationBufferOutput", formatMoney(accommodationBufferTotal));
       setText("accommodationTotal", formatMoney(accommodationTotal));
       setText("accommodationCostPerPerson", formatMoney(accommodationCostPerPerson));
       setText("accommodationSalePerPerson", formatMoney(accommodationSalePerPerson));
@@ -1854,7 +1933,7 @@
       setValue("groupInsuranceTotalDisplay", formatNumber(unpaidInsuranceTotal));
       setValue(
         "groupAccommodationPerPersonDisplay",
-        formatNumber(baseAccommodationCostPerPerson)
+        formatNumber(realAccommodationCostPerPerson)
       );
       setValue(
         "groupAccommodationTotalDisplay",
@@ -1936,6 +2015,7 @@
         "night2",
         "night3",
         "night4",
+        "accommodationBuffer",
         "tourDays",
         "unpaidPersons",
         "entry1Price",
@@ -1954,6 +2034,7 @@
       [1, 2, 3, 4].forEach(nightNumber => {
         element(`night${nightNumber}Currency`).value = "EUR";
       });
+      element("accommodationBufferCurrency").value = "CZK";
       element("entry1Currency").value = "EUR";
       element("entry2Currency").value = "EUR";
       calculate();
@@ -2004,6 +2085,7 @@
         "night2",
         "night3",
         "night4",
+        "accommodationBuffer",
         "tourDays",
         "unpaidPersons",
         "entry1Price",
@@ -2026,6 +2108,7 @@
       restoreCalculationState(exportPayload);
     } else {
       element("effectiveOccupancy").value = parameters.defaultOccupancy;
+      applyTransportPrefill(transportPrefill);
     }
 
     setParametersLocked(true);
