@@ -566,6 +566,13 @@
       font-size: .84rem;
     }
 
+    .export-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
     .readonly-banner {
       display: flex;
       align-items: center;
@@ -693,47 +700,253 @@
         flex-direction: column;
       }
 
+      .export-actions {
+        width: 100%;
+      }
+
       .export-section .button {
         width: 100%;
       }
     }
 
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+
     @media print {
+      html,
       body {
-        background: #fff;
+        width: auto;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        background: #fff !important;
+        color: #111827;
+        font-size: 9pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
 
       .page {
         width: 100%;
+        max-width: none;
         margin: 0;
       }
 
       .hero {
-        color: #000;
-        border: 1px solid #bbb;
-        background: #fff;
+        display: block;
+        margin: 0 0 5mm;
+        padding: 5mm 6mm;
+        border: 0.3mm solid #9aa8bd;
+        border-radius: 3mm;
+        color: #fff;
+        background: linear-gradient(135deg, #123d7a, #175cd3 58%, #0f766e) !important;
         box-shadow: none;
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+      }
+
+      .hero h1 {
+        margin: 0 0 1.5mm;
+        font-size: 18pt;
       }
 
       .hero p {
-        color: #444;
+        margin: 0;
+        max-width: none;
+        color: rgba(255, 255, 255, .92);
+        font-size: 8.5pt;
       }
 
       .hero-actions,
       .parameter-strip button,
       .export-section,
       .readonly-banner,
-      .calculation-notes {
+      .calculation-notes,
+      #parametersPanel,
+      .details-chevron,
+      .parameter-actions {
         display: none !important;
       }
 
-      .layout {
-        grid-template-columns: 1fr 1fr;
+      .parameter-strip {
+        margin: 0 0 5mm;
+        padding: 2.5mm 3mm;
+        border: 0.25mm solid #b8cdf4;
+        border-radius: 2mm;
+        background: #eef4ff !important;
+        font-size: 7.8pt;
+        break-inside: avoid-page;
+        page-break-inside: avoid;
       }
 
-      .card {
-        break-inside: avoid;
+      .layout,
+      .stack {
+        display: block;
+      }
+
+      .card,
+      details.card {
+        overflow: visible;
+        margin: 0 0 4mm;
+        border: 0.25mm solid #cbd5e1;
+        border-radius: 2.5mm;
+        background: #fff !important;
         box-shadow: none;
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+      }
+
+      .card-header {
+        padding: 2.5mm 3.5mm;
+        border-bottom: 0.2mm solid #d9e0ea;
+        background: #f6f8fb !important;
+      }
+
+      .card-header h2,
+      .card-header h3 {
+        font-size: 10.5pt;
+      }
+
+      .card-body {
+        padding: 3.5mm;
+      }
+
+      .grid {
+        gap: 2.5mm;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .grid-4,
+      .grid-5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      label {
+        margin-bottom: 1mm;
+        font-size: 7.6pt;
+      }
+
+      .hint {
+        margin-top: 1mm;
+        font-size: 6.8pt;
+      }
+
+      input,
+      select,
+      textarea,
+      input[readonly],
+      input:disabled,
+      select:disabled,
+      textarea:disabled {
+        min-height: 7mm;
+        padding: 1.6mm 2mm;
+        border: 0.2mm solid #cbd5e1 !important;
+        border-radius: 1.5mm;
+        color: #111827 !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        opacity: 1 !important;
+        -webkit-text-fill-color: #111827 !important;
+      }
+
+      textarea {
+        min-height: 12mm;
+        resize: none;
+      }
+
+      select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: none !important;
+      }
+
+      .input-with-unit .unit {
+        right: 2.5mm;
+        bottom: 2mm;
+        font-size: 6.8pt;
+      }
+
+      .night-controls {
+        grid-template-columns: minmax(0, 1fr) 25mm;
+        gap: 2mm;
+      }
+
+      .formula-box {
+        gap: 2mm;
+        margin-top: 3mm;
+        padding-top: 3mm;
+      }
+
+      .mini-result,
+      .result-item {
+        padding: 2.5mm;
+        border-radius: 1.8mm;
+        background: #f8fafc !important;
+      }
+
+      .mini-result span,
+      .result-item span,
+      .result-hero span {
+        font-size: 6.8pt;
+      }
+
+      .mini-result strong,
+      .result-item strong {
+        font-size: 9pt;
+      }
+
+      .result-hero {
+        padding: 4mm;
+        border-radius: 2.5mm;
+        color: #fff !important;
+        background: linear-gradient(135deg, #123d7a, #175cd3) !important;
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+      }
+
+      .result-hero strong {
+        font-size: 19pt;
+      }
+
+      .result-grid {
+        gap: 2mm;
+        margin-top: 2.5mm;
+      }
+
+      .price-panel {
+        margin-top: 3mm;
+        padding: 3mm;
+        border-radius: 2mm;
+        background: #eef4ff !important;
+      }
+
+      .status {
+        margin-top: 2.5mm;
+        padding: 2.5mm;
+        font-size: 7.6pt;
+      }
+
+      #groupToursPanel:not([open]) {
+        display: none !important;
+      }
+
+      #groupToursPanel[open] > summary {
+        display: flex;
+      }
+
+      .pdf-export-mode .card,
+      .pdf-export-mode details.card {
+        break-inside: avoid-page;
+        page-break-inside: avoid;
       }
     }
   </style>
@@ -1398,10 +1611,15 @@
         </details>
 
         <div class="export-section" id="exportSection">
-          <p>Vytvoří statickou kopii kalkulace s unikátním odkazem a otevře ji v nové kartě.</p>
-          <button class="button button-primary" type="button" id="exportButton">
-            Exportovat kalkulaci
-          </button>
+          <p>Export kalkulace lze uložit jako unikátní odkaz nebo jako tisknutelné PDF ve formátu A4.</p>
+          <div class="export-actions">
+            <button class="button button-primary" type="button" id="exportButton">
+              Exportovat odkaz
+            </button>
+            <button class="button button-secondary" type="button" id="pdfExportButton">
+              Export do PDF
+            </button>
+          </div>
         </div>
 
         <details class="calculation-notes">
@@ -1619,6 +1837,70 @@
       const payload = collectCalculationState();
       const exportUrl = buildExportUrl(payload);
       window.open(exportUrl, "_blank", "noopener");
+    }
+
+    let pdfExportState = null;
+
+    function groupToursContainsData() {
+      const numericIds = [
+        "tourDays",
+        "unpaidPersons",
+        "entry1Price",
+        "entry2Price"
+      ];
+
+      return numericIds.some(id => getNumber(id) > 0);
+    }
+
+    function exportToPdf() {
+      calculate();
+
+      if (pdfExportState) {
+        return;
+      }
+
+      const notesPanel = document.querySelector(".calculation-notes");
+      pdfExportState = {
+        title: document.title,
+        groupToursOpen: element("groupToursPanel").open,
+        parametersOpen: element("parametersPanel").open,
+        notesOpen: Boolean(notesPanel?.open)
+      };
+
+      // Skupinové položky se do PDF zahrnou jen pokud jsou skutečně použité.
+      element("groupToursPanel").open = groupToursContainsData();
+      element("parametersPanel").open = false;
+      if (notesPanel) {
+        notesPanel.open = false;
+      }
+
+      document.body.classList.add("pdf-export-mode");
+
+      const tourName = element("tourName").value.trim();
+      document.title = tourName
+        ? `Kalkulace - ${tourName}`
+        : "Kalkulace poznávacího zájezdu";
+
+      window.requestAnimationFrame(() => {
+        window.setTimeout(() => window.print(), 60);
+      });
+    }
+
+    function restoreAfterPdfExport() {
+      if (!pdfExportState) {
+        return;
+      }
+
+      element("groupToursPanel").open = pdfExportState.groupToursOpen;
+      element("parametersPanel").open = pdfExportState.parametersOpen;
+      const notesPanel = document.querySelector(".calculation-notes");
+      if (notesPanel) {
+        notesPanel.open = pdfExportState.notesOpen;
+      }
+
+      document.title = pdfExportState.title;
+      document.body.classList.remove("pdf-export-mode");
+      pdfExportState = null;
     }
 
     async function copyCurrentExportLink() {
@@ -2099,8 +2381,10 @@
     });
 
     element("exportButton").addEventListener("click", exportCalculation);
+    element("pdfExportButton").addEventListener("click", exportToPdf);
     element("copyExportLinkButton").addEventListener("click", copyCurrentExportLink);
     element("printButton").addEventListener("click", () => window.print());
+    window.addEventListener("afterprint", restoreAfterPdfExport);
 
     populateParameterInputs();
 
