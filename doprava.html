@@ -267,6 +267,23 @@
       font-size: .86rem;
     }
 
+
+    .share-notice {
+      display: none;
+      margin: 16px 0;
+      padding: 12px 14px;
+      border: 1px solid #9db9eb;
+      border-radius: 12px;
+      color: #194185;
+      background: var(--primary-soft);
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .share-notice.visible {
+      display: block;
+    }
+
     @media (max-width: 760px) {
       .page { width: calc(100% - 20px); margin-top: 10px; }
       .hero { flex-direction: column; padding: 22px 20px; }
@@ -286,16 +303,21 @@
         </p>
       </div>
       <div class="hero-actions">
+        <a class="button button-light" href="databaze.html">Databáze kalkulací</a>
         <a class="button button-light" href="index.html">Zpět do kalkulačky</a>
       </div>
     </header>
 
     <div class="toolbar">
-      <p>Zadaný seznam se automaticky ukládá v tomto prohlížeči.</p>
+      <p>Seznam se ukládá v tomto prohlížeči. Jednotlivý řádek můžete sdílet unikátním odkazem i do jiného prohlížeče.</p>
       <div class="toolbar-actions">
         <button class="button button-primary" type="button" id="addRowButton">Přidat zájezd</button>
         <button class="button button-secondary" type="button" id="clearListButton">Vymazat seznam</button>
       </div>
+    </div>
+
+    <div class="share-notice" id="shareNotice" role="status">
+      Sdílený řádek byl načten a uložen do tohoto prohlížeče.
     </div>
 
     <section class="card">
@@ -320,6 +342,7 @@
 
     <div class="info">
       Název zájezdu, skrytá poznámka i ostatní zadané údaje se průběžně ukládají v tomto prohlížeči a zůstanou zachované i po zavření stránky.
+      Tlačítko „Sdílet řádek“ vytvoří unikátní odkaz obsahující všechny údaje daného řádku. Po otevření odkazu v jiném prohlížeči nebo na jiném počítači se řádek automaticky načte a uloží i tam.
       Přenos do kalkulačky vyplní název zájezdu, základní kilometry, sazbu Kč/km a daň + parkovné. Odkaz na Google Maps zůstává uložený v seznamu dopravy.
       Odhad kilometrů se v kalkulačce dopočítá podle parametru rezervy trasy (výchozí hodnota je 9 %).
     </div>
@@ -373,6 +396,90 @@
 
     function saveRows() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+    }
+
+
+    function encodeSharedRow(row) {
+      const payload = JSON.stringify({
+        id: row.id,
+        name: row.name || "",
+        note: row.note || "",
+        km: normalizeNumber(row.km),
+        rate: normalizeNumber(row.rate) || 40,
+        taxParking: normalizeNumber(row.taxParking),
+        mapsUrl: row.mapsUrl || ""
+      });
+
+      const bytes = new TextEncoder().encode(payload);
+      let binary = "";
+      bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+
+      return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+    }
+
+    function decodeSharedRow(encoded) {
+      try {
+        const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
+        const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+        const binary = atob(padded);
+        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        const data = JSON.parse(new TextDecoder().decode(bytes));
+
+        return {
+          id: data.id || createId(),
+          name: String(data.name || ""),
+          note: String(data.note || ""),
+          km: normalizeNumber(data.km),
+          rate: normalizeNumber(data.rate) || 40,
+          taxParking: normalizeNumber(data.taxParking),
+          mapsUrl: String(data.mapsUrl || "")
+        };
+      } catch (error) {
+        console.warn("Sdílený řádek se nepodařilo načíst.", error);
+        return null;
+      }
+    }
+
+    function importSharedRowFromUrl() {
+      const hash = window.location.hash || "";
+      const match = hash.match(/^#row=([^&]+)/);
+      if (!match) return false;
+
+      const sharedRow = decodeSharedRow(match[1]);
+      if (!sharedRow) return false;
+
+      const existingIndex = rows.findIndex(row => row.id === sharedRow.id);
+      if (existingIndex >= 0) {
+        rows[existingIndex] = { ...rows[existingIndex], ...sharedRow };
+      } else {
+        rows.unshift(sharedRow);
+      }
+
+      saveRows();
+
+      const notice = document.getElementById("shareNotice");
+      if (notice) notice.classList.add("visible");
+      return true;
+    }
+
+    async function shareRow(id) {
+      const row = rows.find(item => item.id === id);
+      if (!row) return;
+
+      saveRows();
+
+      const url = new URL("doprava.html", window.location.href);
+      url.hash = `row=${encodeSharedRow(row)}`;
+
+      try {
+        await navigator.clipboard.writeText(url.toString());
+        alert("Odkaz na tento řádek byl zkopírován. Můžete ho poslat dál.");
+      } catch (error) {
+        window.prompt("Zkopírujte odkaz na tento řádek:", url.toString());
+      }
     }
 
     function normalizeNumber(value) {
@@ -442,6 +549,7 @@
             <td>
               <div class="action-buttons">
                 <button class="button button-primary button-small open-calculation" type="button">Otevřít kalkulačku</button>
+                <button class="button button-secondary button-small share-row" type="button">Sdílet řádek</button>
                 <button class="button button-danger button-small delete-row" type="button" aria-label="Smazat řádek">×</button>
               </div>
             </td>
@@ -488,6 +596,13 @@
         button.addEventListener("click", event => {
           const rowElement = event.currentTarget.closest("tr");
           openCalculator(rowElement.dataset.rowId);
+        });
+      });
+
+      rowsContainer.querySelectorAll(".share-row").forEach(button => {
+        button.addEventListener("click", event => {
+          const rowElement = event.currentTarget.closest("tr");
+          shareRow(rowElement.dataset.rowId);
         });
       });
 
@@ -594,6 +709,7 @@
     document.getElementById("clearListButton").addEventListener("click", clearList);
     window.addEventListener("beforeunload", saveRows);
 
+    importSharedRowFromUrl();
     renderRows();
   </script>
 </body>
