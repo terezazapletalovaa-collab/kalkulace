@@ -31,7 +31,7 @@
       line-height: 1.45;
     }
 
-    button, input, select { font: inherit; }
+    button, input, select, textarea { font: inherit; }
     button { cursor: pointer; }
 
     .page {
@@ -145,15 +145,15 @@
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr:hover { background: #fbfcfe; }
 
-    .col-name { width: 25%; }
-    .col-km { width: 10%; }
-    .col-kmplus { width: 12%; }
-    .col-rate { width: 10%; }
-    .col-tax { width: 12%; }
-    .col-map { width: 18%; min-width: 240px; }
-    .col-action { width: 13%; min-width: 185px; }
+    .col-name { width: 23%; min-width: 300px; }
+    .col-map { width: 19%; min-width: 250px; }
+    .col-km { width: 9%; }
+    .col-kmplus { width: 10%; }
+    .col-rate { width: 9%; }
+    .col-tax { width: 11%; }
+    .col-action { width: 19%; min-width: 185px; }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       min-height: 39px;
       padding: 8px 10px;
@@ -164,7 +164,7 @@
       outline: none;
     }
 
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(23, 92, 211, .12);
     }
@@ -178,6 +178,77 @@
       display: flex;
       gap: 6px;
       align-items: center;
+    }
+
+    .name-cell {
+      display: grid;
+      gap: 7px;
+      position: relative;
+    }
+
+    .name-main-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .note-toggle {
+      position: relative;
+      min-height: 39px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #475467;
+      background: #fff;
+      font-size: .79rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .note-toggle:hover {
+      border-color: #9db9eb;
+      background: var(--primary-soft);
+    }
+
+    .note-toggle.has-note {
+      color: #194185;
+      border-color: #9db9eb;
+      background: var(--primary-soft);
+    }
+
+    .note-toggle.has-note::after {
+      content: "";
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .note-editor {
+      padding: 9px;
+      border: 1px solid #b8cdf4;
+      border-radius: 9px;
+      background: var(--primary-soft);
+    }
+
+    .note-editor[hidden] {
+      display: none !important;
+    }
+
+    .note-editor textarea {
+      min-height: 86px;
+      resize: vertical;
+      background: #fff;
+    }
+
+    .note-editor-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 7px;
     }
 
     .empty-state {
@@ -233,11 +304,11 @@
           <thead>
             <tr>
               <th class="col-name">Název zájezdu</th>
+              <th class="col-map">Google Maps</th>
               <th class="col-km">Kilometry</th>
               <th class="col-kmplus">Km + 9 %</th>
               <th class="col-rate">Kč / km</th>
               <th class="col-tax">Daň + parkovné</th>
-              <th class="col-map">Google Maps</th>
               <th class="col-action">Kalkulace</th>
             </tr>
           </thead>
@@ -248,7 +319,7 @@
     </section>
 
     <div class="info">
-      Název zájezdu i ostatní zadané údaje se průběžně ukládají v tomto prohlížeči a zůstanou zachované i po zavření stránky.
+      Název zájezdu, skrytá poznámka i ostatní zadané údaje se průběžně ukládají v tomto prohlížeči a zůstanou zachované i po zavření stránky.
       Přenos do kalkulačky vyplní název zájezdu, základní kilometry, sazbu Kč/km a daň + parkovné. Odkaz na Google Maps zůstává uložený v seznamu dopravy.
       Odhad kilometrů se v kalkulačce dopočítá podle parametru rezervy trasy (výchozí hodnota je 9 %).
     </div>
@@ -274,6 +345,7 @@
       return {
         id: createId(),
         name: "",
+        note: "",
         km: 0,
         rate: 40,
         taxParking: 0,
@@ -289,7 +361,8 @@
             ...defaultRow(),
             ...row,
             id: row.id || createId(),
-            mapsUrl: row.mapsUrl || ""
+            mapsUrl: row.mapsUrl || "",
+            note: row.note || ""
           }));
         }
       } catch (error) {
@@ -335,7 +408,24 @@
         return `
           <tr data-row-id="${row.id}">
             <td>
-              <input class="row-input" data-field="name" type="text" value="${escapeHtml(row.name)}" placeholder="Název zájezdu">
+              <div class="name-cell">
+                <div class="name-main-row">
+                  <input class="row-input" data-field="name" type="text" value="${escapeHtml(row.name)}" placeholder="Název zájezdu">
+                  <button class="note-toggle ${String(row.note || "").trim() ? "has-note" : ""}" type="button" title="${String(row.note || "").trim() ? "Poznámka je uložená" : "Přidat poznámku"}">Poznámka</button>
+                </div>
+                <div class="note-editor" hidden>
+                  <textarea class="row-input" data-field="note" placeholder="Skrytá poznámka k zájezdu…">${escapeHtml(row.note || "")}</textarea>
+                  <div class="note-editor-actions">
+                    <button class="button button-secondary button-small close-note" type="button">Zavřít</button>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <input class="row-input" data-field="mapsUrl" type="url" value="${escapeHtml(row.mapsUrl || "")}" placeholder="https://maps.google.com/…" aria-label="Odkaz na Google Maps">
+                <button class="button button-secondary button-small open-map" type="button" ${row.mapsUrl ? "" : "disabled"}>Mapa</button>
+              </div>
             </td>
             <td>
               <input class="row-input" data-field="km" type="number" min="0" step="1" value="${normalizeNumber(row.km)}">
@@ -348,12 +438,6 @@
             </td>
             <td>
               <input class="row-input" data-field="taxParking" type="number" min="0" step="1" value="${normalizeNumber(row.taxParking)}">
-            </td>
-            <td>
-              <div class="action-buttons">
-                <input class="row-input" data-field="mapsUrl" type="url" value="${escapeHtml(row.mapsUrl || "")}" placeholder="https://maps.google.com/…" aria-label="Odkaz na Google Maps">
-                <button class="button button-secondary button-small open-map" type="button" ${row.mapsUrl ? "" : "disabled"}>Mapa</button>
-              </div>
             </td>
             <td>
               <div class="action-buttons">
@@ -372,6 +456,25 @@
       rowsContainer.querySelectorAll(".row-input").forEach(control => {
         control.addEventListener("input", handleRowChange);
         control.addEventListener("change", handleRowChange);
+      });
+
+      rowsContainer.querySelectorAll(".note-toggle").forEach(button => {
+        button.addEventListener("click", event => {
+          const rowElement = event.currentTarget.closest("tr");
+          const editor = rowElement.querySelector(".note-editor");
+          const shouldOpen = editor.hidden;
+          editor.hidden = !shouldOpen;
+          if (shouldOpen) {
+            editor.querySelector('[data-field="note"]')?.focus();
+          }
+        });
+      });
+
+      rowsContainer.querySelectorAll(".close-note").forEach(button => {
+        button.addEventListener("click", event => {
+          const rowElement = event.currentTarget.closest("tr");
+          rowElement.querySelector(".note-editor").hidden = true;
+        });
       });
 
       rowsContainer.querySelectorAll(".open-map").forEach(button => {
@@ -402,7 +505,7 @@
       if (!row) return;
 
       const field = event.currentTarget.dataset.field;
-      if (field === "name" || field === "mapsUrl") {
+      if (field === "name" || field === "mapsUrl" || field === "note") {
         row[field] = event.currentTarget.value;
       } else {
         row[field] = normalizeNumber(event.currentTarget.value);
@@ -415,6 +518,15 @@
       if (field === "mapsUrl") {
         const mapButton = rowElement.querySelector(".open-map");
         if (mapButton) mapButton.disabled = !row.mapsUrl.trim();
+      }
+
+      if (field === "note") {
+        const noteButton = rowElement.querySelector(".note-toggle");
+        const hasNote = Boolean(String(row.note || "").trim());
+        if (noteButton) {
+          noteButton.classList.toggle("has-note", hasNote);
+          noteButton.title = hasNote ? "Poznámka je uložená" : "Přidat poznámku";
+        }
       }
 
       saveRows();
