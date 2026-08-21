@@ -965,6 +965,7 @@
 
       <div class="hero-actions">
         <a class="button button-ghost" id="transportListLink" href="doprava.html">Seznam dopravy</a>
+        <a class="button button-ghost" id="databaseLink" href="databaze.html">Databáze kalkulací</a>
         <button class="button button-ghost" type="button" id="copyExportLinkButton" hidden>Kopírovat odkaz</button>
         <button class="button button-ghost" type="button" id="printButton">Vytisknout</button>
         <button class="button button-light" type="button" id="resetButton">Nová kalkulace</button>
@@ -1624,6 +1625,12 @@
             <button class="button button-secondary" type="button" id="pdfExportButton">
               Export do PDF
             </button>
+            <button class="button button-secondary" type="button" id="saveDatabaseButton">
+              Uložit do databáze
+            </button>
+            <a class="button button-secondary" href="databaze.html">
+              Otevřít databázi
+            </a>
           </div>
         </div>
 
@@ -1650,6 +1657,7 @@
     "use strict";
 
     const STORAGE_KEY = "poznavaciZajezdyKalkulaceParametryV2";
+    const DATABASE_STORAGE_KEY = "poznavaciZajezdyKalkulaceDatabaseV1";
 
     const DEFAULT_PARAMETERS = Object.freeze({
       busMarkup: 45,
@@ -1684,6 +1692,7 @@
     const exportPayload = readExportPayloadFromHash();
     const isExportView = Boolean(exportPayload);
     const transportPrefill = isExportView ? null : readTransportPrefillFromQuery();
+    const autoPrintExport = isExportView && new URLSearchParams(window.location.search).get("pdf") === "1";
 
     let parameters = exportPayload && exportPayload.parameters
       ? { ...DEFAULT_PARAMETERS, ...exportPayload.parameters }
@@ -1831,6 +1840,66 @@
       }
     }
 
+
+    function loadCalculationDatabase() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(DATABASE_STORAGE_KEY));
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        console.warn("Databázi kalkulací se nepodařilo načíst.", error);
+        return [];
+      }
+    }
+
+    function saveCalculationToDatabase(payload, exportType = "uloženo") {
+      if (!payload || !payload.exportId) {
+        return null;
+      }
+
+      calculate();
+      const records = loadCalculationDatabase();
+      const record = {
+        id: payload.exportId,
+        createdAt: payload.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        exportType,
+        tourName: payload.fields?.tourName?.trim() || "Bez názvu",
+        summary: {
+          totalCosts: element("totalCosts").textContent,
+          costPerPerson: element("costPerPerson").textContent,
+          optimalSalePrice: element("optimalSalePrice").textContent,
+          finalSalePrice: formatMoney(getNumber("finalSalePrice")),
+          actualMarginPercent: element("actualMarginPercent").textContent
+        },
+        payload
+      };
+
+      const existingIndex = records.findIndex(item => item.id === record.id);
+      if (existingIndex >= 0) {
+        records[existingIndex] = record;
+      } else {
+        records.unshift(record);
+      }
+
+      try {
+        localStorage.setItem(DATABASE_STORAGE_KEY, JSON.stringify(records));
+        return record;
+      } catch (error) {
+        console.error("Kalkulaci se nepodařilo uložit do databáze.", error);
+        alert("Kalkulaci se nepodařilo uložit. Úložiště prohlížeče může být plné.");
+        return null;
+      }
+    }
+
+    function saveCurrentCalculationToDatabase() {
+      calculate();
+      const payload = collectCalculationState();
+      const saved = saveCalculationToDatabase(payload, "uloženo");
+      if (saved) {
+        alert(`Kalkulace „${saved.tourName}“ byla uložena do databáze.`);
+      }
+    }
+
     function buildExportUrl(payload) {
       const url = new URL(window.location.href);
       url.hash = `export=${encodeExportPayload(payload)}`;
@@ -1840,6 +1909,7 @@
     function exportCalculation() {
       calculate();
       const payload = collectCalculationState();
+      saveCalculationToDatabase(payload, "odkaz");
       const exportUrl = buildExportUrl(payload);
       window.open(exportUrl, "_blank", "noopener");
     }
@@ -1859,6 +1929,11 @@
 
     function exportToPdf() {
       calculate();
+
+      if (!isExportView) {
+        const payload = collectCalculationState();
+        saveCalculationToDatabase(payload, "PDF");
+      }
 
       if (pdfExportState) {
         return;
@@ -2390,6 +2465,7 @@
 
     element("exportButton").addEventListener("click", exportCalculation);
     element("pdfExportButton").addEventListener("click", exportToPdf);
+    element("saveDatabaseButton").addEventListener("click", saveCurrentCalculationToDatabase);
     element("copyExportLinkButton").addEventListener("click", copyCurrentExportLink);
     element("printButton").addEventListener("click", () => window.print());
     window.addEventListener("afterprint", restoreAfterPdfExport);
@@ -2410,7 +2486,10 @@
 
     if (exportPayload) {
       activateExportView(exportPayload);
+      if (autoPrintExport) {
+        window.setTimeout(() => exportToPdf(), 180);
+      }
     }
   </script>
 </body>
-</html>v
+</html>
